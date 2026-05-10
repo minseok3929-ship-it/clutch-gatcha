@@ -29,7 +29,7 @@ public final class ClutchGachaPlugin extends JavaPlugin {
 
         ticketService = new TicketService(this, config);
         rewardService = new RewardService(this, config);
-        gachaService = new GachaService(config, rewardService);
+        gachaService = new GachaService(this, config, rewardService);
         gachaGui = new GachaGui(this, config);
         gachaCommand = new GachaCommand(this, config, gachaGui, ticketService);
         getServer().getPluginManager().registerEvents(new TicketInteractListener(ticketService, gachaService), this);

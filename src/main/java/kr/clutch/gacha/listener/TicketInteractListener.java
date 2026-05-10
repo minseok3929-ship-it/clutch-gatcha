@@ -35,6 +35,6 @@ public final class TicketInteractListener implements Listener {
             return;
         }
         ticketService.consumeHeldTicket(event.getPlayer());
-        gachaService.roll(event.getPlayer());
+        gachaService.startRoulette(event.getPlayer());
     }
 }

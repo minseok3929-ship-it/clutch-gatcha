@@ -2,6 +2,7 @@ package kr.clutch.gacha.gui;
 
 import kr.clutch.gacha.config.GachaConfig;
 import kr.clutch.gacha.model.GachaReward;
+import kr.clutch.gacha.service.GachaService;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -92,7 +93,7 @@ public final class GachaGui implements Listener {
     }
 
     private boolean isGachaGui(String title, InventoryHolder holder) {
-        return holder instanceof Holder || title.equals(config.guiTitle());
+        return holder instanceof Holder || holder instanceof GachaService.RouletteHolder || title.equals(config.guiTitle()) || title.equals("§8CLUTCH §7가챠");
     }
 
     private void fillBorders(Inventory inventory) {
