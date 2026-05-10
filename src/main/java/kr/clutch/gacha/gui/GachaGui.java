@@ -1,7 +1,6 @@
 package kr.clutch.gacha.gui;
 
 import kr.clutch.gacha.config.GachaConfig;
-import kr.clutch.gacha.model.GachaBox;
 import kr.clutch.gacha.model.GachaReward;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -9,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -16,18 +16,14 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public final class GachaGui implements Listener {
     private static final int GUI_SIZE = 27;
-    private static final int BOXES_PER_PAGE = 9;
+    private static final int REWARDS_PER_PAGE = 9;
     private static final int PREVIOUS_SLOT = 18;
     private static final int NEXT_SLOT = 26;
 
-    private final RewardListGui rewardListGui = new RewardListGui();
     private GachaConfig config;
 
     public GachaGui(JavaPlugin plugin, GachaConfig config) {
@@ -44,21 +40,18 @@ public final class GachaGui implements Listener {
     }
 
     private void open(Player player, int page) {
-        List<GachaBox> boxes = new ArrayList<>(config.boxes().values());
-        int maxPage = Math.max(0, (boxes.size() - 1) / BOXES_PER_PAGE);
+        List<GachaReward> rewards = config.rewards();
+        int maxPage = Math.max(0, (rewards.size() - 1) / REWARDS_PER_PAGE);
         int currentPage = Math.max(0, Math.min(page, maxPage));
         Holder holder = new Holder(currentPage);
         Inventory inventory = Bukkit.createInventory(holder, GUI_SIZE, config.guiTitle());
         holder.inventory = inventory;
         fillBorders(inventory);
 
-        int start = currentPage * BOXES_PER_PAGE;
-        int end = Math.min(start + BOXES_PER_PAGE, boxes.size());
+        int start = currentPage * REWARDS_PER_PAGE;
+        int end = Math.min(start + REWARDS_PER_PAGE, rewards.size());
         for (int index = start; index < end; index++) {
-            int slot = 9 + (index - start);
-            GachaBox box = boxes.get(index);
-            inventory.setItem(slot, createIcon(box));
-            holder.boxesBySlot.put(slot, box);
+            inventory.setItem(9 + (index - start), createIcon(rewards.get(index)));
         }
         if (currentPage > 0) {
             inventory.setItem(PREVIOUS_SLOT, navigationIcon("§e이전 페이지"));
@@ -71,11 +64,15 @@ public final class GachaGui implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (!(event.getInventory().getHolder() instanceof Holder holder)) {
+        if (!isGachaGui(event.getView().getTitle(), event.getInventory().getHolder())) {
             return;
         }
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+        InventoryHolder inventoryHolder = event.getInventory().getHolder();
+        if (!(inventoryHolder instanceof Holder holder)) {
             return;
         }
         if (event.getRawSlot() == PREVIOUS_SLOT) {
@@ -84,13 +81,18 @@ public final class GachaGui implements Listener {
         }
         if (event.getRawSlot() == NEXT_SLOT) {
             open(player, holder.page + 1);
-            return;
         }
-        GachaBox box = holder.boxesBySlot.get(event.getRawSlot());
-        if (box == null) {
-            return;
+    }
+
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if (isGachaGui(event.getView().getTitle(), event.getInventory().getHolder())) {
+            event.setCancelled(true);
         }
-        rewardListGui.open(player, box);
+    }
+
+    private boolean isGachaGui(String title, InventoryHolder holder) {
+        return holder instanceof Holder || title.equals(config.guiTitle());
     }
 
     private void fillBorders(Inventory inventory) {
@@ -114,43 +116,20 @@ public final class GachaGui implements Listener {
         return itemStack;
     }
 
-    private ItemStack createIcon(GachaBox box) {
-        ItemStack itemStack = new ItemStack(box.material());
+    private ItemStack createIcon(GachaReward reward) {
+        ItemStack itemStack = reward.itemStack() == null ? new ItemStack(reward.material(), Math.max(1, reward.itemAmount())) : reward.itemStack().clone();
         ItemMeta meta = itemStack.getItemMeta();
-        meta.setDisplayName(box.displayName());
+        meta.setDisplayName(reward.displayName());
         List<String> lore = new ArrayList<>();
-        lore.add("§7보상 개수: §f" + box.rewards().size());
-        if (!box.rewards().isEmpty()) {
-            lore.add("§7등급별 확률 weight");
-            gradeWeights(box).forEach((grade, weight) -> lore.add("§8- §f" + grade + ": §eweight " + weight));
-        } else {
-            lore.add("§7등록된 보상이 없습니다.");
-        }
-        lore.add("");
-        lore.add("§7가챠권을 우클릭하면 기본 상자를 뽑습니다.");
-        lore.add("§e클릭 시 보상 목록 확인");
+        lore.add("§7등급: §f" + reward.grade());
+        lore.add("§7weight: §f" + reward.weight());
+        lore.add("§7설명: §f가챠권 우클릭 시 획득 가능한 보상입니다.");
         meta.setLore(lore);
         itemStack.setItemMeta(meta);
         return itemStack;
     }
 
-    private Map<String, Integer> gradeWeights(GachaBox box) {
-        Map<String, Integer> weightByGrade = new HashMap<>();
-        for (GachaReward reward : box.rewards()) {
-            if (reward.weight() <= 0) {
-                continue;
-            }
-            weightByGrade.merge(reward.grade().name(), reward.weight(), Integer::sum);
-        }
-        Map<String, Integer> weights = new java.util.LinkedHashMap<>();
-        weightByGrade.entrySet().stream()
-                .sorted(Comparator.comparingInt(entry -> kr.clutch.gacha.model.RewardGrade.valueOf(entry.getKey()).ordinal()))
-                .forEach(entry -> weights.put(entry.getKey(), entry.getValue()));
-        return weights;
-    }
-
     private static final class Holder implements InventoryHolder {
-        private final Map<Integer, GachaBox> boxesBySlot = new HashMap<>();
         private final int page;
         private Inventory inventory;
 

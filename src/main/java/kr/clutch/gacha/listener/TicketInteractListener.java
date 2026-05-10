@@ -31,10 +31,10 @@ public final class TicketInteractListener implements Listener {
             return;
         }
         event.setCancelled(true);
-        if (!gachaService.canRollDefaultBox(event.getPlayer())) {
+        if (!gachaService.canRoll(event.getPlayer())) {
             return;
         }
         ticketService.consumeHeldTicket(event.getPlayer());
-        gachaService.rollDefaultBox(event.getPlayer());
+        gachaService.roll(event.getPlayer());
     }
 }

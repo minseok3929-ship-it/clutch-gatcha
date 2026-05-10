@@ -25,7 +25,7 @@ public final class ClutchGachaPlugin extends JavaPlugin {
         saveDefaultConfig();
         storedGachaRepository = new StoredGachaRepository(this);
         storedGachaRepository.load();
-        config = GachaConfig.load(getConfig(), storedGachaRepository.boxes(), storedGachaRepository.deletedBoxIds(), storedGachaRepository.deletedRewardIds());
+        config = GachaConfig.load(getConfig(), storedGachaRepository.rewards(), storedGachaRepository.deletedRewardIds());
 
         ticketService = new TicketService(this, config);
         rewardService = new RewardService(this, config);
@@ -46,7 +46,7 @@ public final class ClutchGachaPlugin extends JavaPlugin {
     public void reloadPluginConfig() {
         reloadConfig();
         storedGachaRepository.load();
-        config = GachaConfig.load(getConfig(), storedGachaRepository.boxes(), storedGachaRepository.deletedBoxIds(), storedGachaRepository.deletedRewardIds());
+        config = GachaConfig.load(getConfig(), storedGachaRepository.rewards(), storedGachaRepository.deletedRewardIds());
         ticketService.updateConfig(config);
         rewardService.updateConfig(config);
         gachaService.updateConfig(config);
@@ -55,7 +55,7 @@ public final class ClutchGachaPlugin extends JavaPlugin {
     }
 
     public void reloadStoredGacha() {
-        config = GachaConfig.load(getConfig(), storedGachaRepository.boxes(), storedGachaRepository.deletedBoxIds(), storedGachaRepository.deletedRewardIds());
+        config = GachaConfig.load(getConfig(), storedGachaRepository.rewards(), storedGachaRepository.deletedRewardIds());
         ticketService.updateConfig(config);
         rewardService.updateConfig(config);
         gachaService.updateConfig(config);

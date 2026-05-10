@@ -1,16 +1,13 @@
 package kr.clutch.gacha.config;
 
-import kr.clutch.gacha.model.GachaBox;
 import kr.clutch.gacha.model.GachaReward;
 import kr.clutch.gacha.model.RewardGrade;
 import kr.clutch.gacha.model.RewardType;
 import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -19,91 +16,44 @@ import java.util.Set;
 public final class GachaConfig {
     private final String prefix;
     private final String moneyCommand;
-    private final String defaultBox;
     private final Material ticketMaterial;
     private final Integer ticketCustomModelData;
     private final String ticketDisplayName;
     private final List<String> ticketLore;
     private final String guiTitle;
     private final int guiSize;
-    private final Map<String, GachaBox> boxes;
+    private final List<GachaReward> rewards;
     private final FileConfiguration config;
 
-    private GachaConfig(FileConfiguration config, Map<String, GachaBox> boxes) {
+    private GachaConfig(FileConfiguration config, List<GachaReward> rewards) {
         this.config = config;
         this.prefix = config.getString("prefix", "§8[CLUTCH] ");
         this.moneyCommand = config.getString("money.command", "");
-        this.defaultBox = config.getString("defaultBox", "normal");
         this.ticketMaterial = material(config.getString("ticket.material"), Material.PAPER);
         this.ticketCustomModelData = config.isInt("ticket.customModelData") ? config.getInt("ticket.customModelData") : null;
         this.ticketDisplayName = config.getString("ticket.displayName", "§6가챠권");
         this.ticketLore = config.getStringList("ticket.lore").isEmpty()
                 ? List.of("§7우클릭으로 사용할 수 있습니다.")
                 : config.getStringList("ticket.lore");
-        this.guiTitle = config.getString("gui.title", "§8CLUTCH 가챠");
+        this.guiTitle = config.getString("gui.title", "§8CLUTCH 가챠 보상");
         this.guiSize = 27;
-        this.boxes = Collections.unmodifiableMap(boxes);
+        this.rewards = Collections.unmodifiableList(rewards);
     }
 
     public static GachaConfig load(FileConfiguration config) {
-        return load(config, Map.of());
+        return load(config, List.of(), Set.of());
     }
 
-    public static GachaConfig load(FileConfiguration config, Map<String, GachaBox> extraBoxes) {
-        return load(config, extraBoxes, Set.of(), Map.of());
-    }
-
-    public static GachaConfig load(FileConfiguration config, Map<String, GachaBox> extraBoxes, Set<String> deletedBoxIds) {
-        return load(config, extraBoxes, deletedBoxIds, Map.of());
-    }
-
-    public static GachaConfig load(FileConfiguration config, Map<String, GachaBox> extraBoxes, Set<String> deletedBoxIds, Map<String, Set<String>> deletedRewardIds) {
-        Map<String, GachaBox> boxes = new LinkedHashMap<>();
-        ConfigurationSection boxSection = config.getConfigurationSection("boxes");
-        if (boxSection != null) {
-            for (String boxId : boxSection.getKeys(false)) {
-                ConfigurationSection section = boxSection.getConfigurationSection(boxId);
-                if (section != null && !deletedBoxIds.contains(boxId)) {
-                    boxes.put(boxId, parseBox(boxId, section, deletedRewardIds.getOrDefault(boxId, Set.of())));
-                }
-            }
-        }
-        for (Map.Entry<String, GachaBox> entry : extraBoxes.entrySet()) {
-            GachaBox base = boxes.get(entry.getKey());
-            if (base == null) {
-                boxes.put(entry.getKey(), entry.getValue());
-                continue;
-            }
-            List<GachaReward> mergedRewards = new ArrayList<>(base.rewards());
-            mergedRewards.addAll(entry.getValue().rewards());
-            boxes.put(entry.getKey(), new GachaBox(
-                    base.id(),
-                    base.slot(),
-                    base.displayName(),
-                    base.material(),
-                    base.lore(),
-                    Collections.unmodifiableList(mergedRewards)
-            ));
-        }
-        return new GachaConfig(config, boxes);
-    }
-
-    private static GachaBox parseBox(String id, ConfigurationSection section, Set<String> deletedRewardIds) {
+    public static GachaConfig load(FileConfiguration config, List<GachaReward> storedRewards, Set<String> deletedRewardIds) {
         List<GachaReward> rewards = new ArrayList<>();
-        for (Map<?, ?> rawReward : section.getMapList("rewards")) {
+        for (Map<?, ?> rawReward : config.getMapList("gacha.rewards")) {
             String rewardId = string(rawReward, "id", "reward");
             if (!deletedRewardIds.contains(rewardId)) {
                 rewards.add(parseReward(rawReward));
             }
         }
-        return new GachaBox(
-                id,
-                section.getInt("slot", 0),
-                section.getString("displayName", id),
-                material(section.getString("material"), Material.CHEST),
-                section.getStringList("lore"),
-                Collections.unmodifiableList(rewards)
-        );
+        rewards.addAll(storedRewards);
+        return new GachaConfig(config, rewards);
     }
 
     private static GachaReward parseReward(Map<?, ?> rawReward) {
@@ -172,11 +122,6 @@ public final class GachaConfig {
         }
     }
 
-    private static int normalizeGuiSize(int configured) {
-        int size = Math.max(9, Math.min(54, configured));
-        return size % 9 == 0 ? size : ((size / 9) + 1) * 9;
-    }
-
     public String message(String path, String fallback) {
         return prefix + config.getString("messages." + path, fallback);
     }
@@ -191,10 +136,6 @@ public final class GachaConfig {
 
     public String moneyCommand() {
         return moneyCommand;
-    }
-
-    public String defaultBox() {
-        return defaultBox;
     }
 
     public Material ticketMaterial() {
@@ -221,7 +162,7 @@ public final class GachaConfig {
         return guiSize;
     }
 
-    public Map<String, GachaBox> boxes() {
-        return boxes;
+    public List<GachaReward> rewards() {
+        return rewards;
     }
 }

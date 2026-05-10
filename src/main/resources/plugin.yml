@@ -10,7 +10,7 @@ softdepend:
 commands:
   가챠:
     description: 가챠 GUI를 열거나 설정을 리로드합니다.
-    usage: /가챠 [리로드|상품추가|상품목록|상품삭제|상자생성|상자삭제]
+    usage: /가챠 [리로드|상품추가|상품목록|상품삭제]
     permission: clutch.gacha.use
   가챠권:
     description: 가챠권을 관리합니다.
