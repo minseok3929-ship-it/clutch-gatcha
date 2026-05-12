@@ -34,7 +34,7 @@ public final class RewardService {
             case TITLE -> giveTitle(player, reward);
             case COMMAND -> runCommand(player, reward.command());
         }
-        player.sendMessage(config.message("reward", "§a%reward%§f 보상을 획득했습니다.").replace("%reward%", reward.displayName()));
+        player.sendMessage(config.message("reward", "§a%reward%§f 보상을 획득했습니다.").replace("%reward%", reward.effectiveDisplayName()));
         playSound(player, config.raw("animation.rewardSound", "ENTITY_PLAYER_LEVELUP"));
         if (reward.grade().isAtLeast(RewardGrade.LEGENDARY)) {
             announceRare(player, reward);
@@ -80,7 +80,7 @@ public final class RewardService {
     }
 
     private void giveTitle(Player player, GachaReward reward) {
-        String title = reward.titleName().isBlank() ? reward.displayName() : reward.titleName();
+        String title = reward.titleName().isBlank() ? reward.effectiveDisplayName() : reward.titleName();
         runCommand(player, "칭호 지급 %player% " + title + " " + reward.titleColor());
     }
 
@@ -92,9 +92,9 @@ public final class RewardService {
     }
 
     private void announceRare(Player player, GachaReward reward) {
-        Bukkit.broadcastMessage(config.message("broadcastRare", "§6%player%님이 %reward%를 획득했습니다!")
+        Bukkit.broadcastMessage(config.message("broadcastRare", "§6%player%님이 %reward% §f보상을 획득했습니다!")
                 .replace("%player%", player.getName())
-                .replace("%reward%", reward.displayName()));
+                .replace("%reward%", reward.effectiveDisplayName()));
     }
 
     private void playSound(Player player, String soundName) {

@@ -101,7 +101,7 @@ public final class GachaCommand implements CommandExecutor, TabCompleter, Listen
         }
         pendingRewards.put(player.getUniqueId(), itemStack.clone());
         player.closeInventory();
-        player.sendMessage(config.prefix() + "§e채팅으로 등급과 weight를 입력하세요. 예: LEGENDARY 1");
+        player.sendMessage(config.prefix() + "§e채팅으로 등급, weight, 표시이름을 입력하세요. 예: LEGENDARY 1 §6전설의 검");
         return true;
     }
 
@@ -157,27 +157,27 @@ public final class GachaCommand implements CommandExecutor, TabCompleter, Listen
 
     private void finishAddReward(Player player, ItemStack pending, String message) {
         String[] parts = message.trim().split("\\s+");
-        if (parts.length != 2) {
+        if (parts.length < 3) {
             player.sendMessage(config.prefix() + "§c취소되었습니다.");
             return;
         }
         RewardGrade grade;
-        int weight;
+        double weight;
         try {
             grade = RewardGrade.valueOf(parts[0].toUpperCase(Locale.ROOT));
-            weight = Integer.parseInt(parts[1]);
+            weight = Double.parseDouble(parts[1]);
         } catch (IllegalArgumentException exception) {
             player.sendMessage(config.prefix() + "§c취소되었습니다.");
             return;
         }
-        if (weight <= 0) {
+        if (weight <= 0D) {
             player.sendMessage(config.prefix() + "§c취소되었습니다.");
             return;
         }
-        String displayName = itemDisplayName(pending);
+        String displayName = String.join(" ", java.util.Arrays.copyOfRange(parts, 2, parts.length));
         plugin.storedGachaRepository().addItemReward(pending, grade, weight, displayName);
         plugin.reloadStoredGacha();
-        player.sendMessage(config.prefix() + "§a상품을 추가했습니다. §7(" + grade + ", weight " + weight + ")");
+        player.sendMessage(config.prefix() + "§a상품을 추가했습니다. §7(" + grade + ", weight " + weight + ", " + displayName + ")");
     }
 
     private boolean handleTicket(CommandSender sender, String[] args) {
@@ -217,13 +217,6 @@ public final class GachaCommand implements CommandExecutor, TabCompleter, Listen
         }
         sender.sendMessage(config.prefix() + "§c권한이 없습니다.");
         return false;
-    }
-
-    private String itemDisplayName(ItemStack itemStack) {
-        if (itemStack.hasItemMeta() && itemStack.getItemMeta().hasDisplayName()) {
-            return itemStack.getItemMeta().getDisplayName();
-        }
-        return itemStack.getType().name();
     }
 
     @Override

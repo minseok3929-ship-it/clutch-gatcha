@@ -120,7 +120,7 @@ public final class GachaGui implements Listener {
     private ItemStack createIcon(GachaReward reward) {
         ItemStack itemStack = reward.itemStack() == null ? new ItemStack(reward.material(), Math.max(1, reward.itemAmount())) : reward.itemStack().clone();
         ItemMeta meta = itemStack.getItemMeta();
-        meta.setDisplayName(reward.displayName());
+        meta.setDisplayName(reward.effectiveDisplayName());
         List<String> lore = new ArrayList<>();
         lore.add("§7등급: §f" + reward.grade());
         lore.add("§7weight: §f" + reward.weight());

@@ -91,7 +91,7 @@ public final class GachaService {
 
     private void finishRoulette(Player player, Inventory inventory, GachaReward finalReward) {
         inventory.setItem(WIN_SLOT, displayItem(finalReward));
-        player.sendTitle(config.raw("animation.successTitle", "§8CLUTCH"), config.raw("animation.successSubtitle", "§f가챠 보상을 획득했습니다!"), 10, 50, 20);
+        player.sendTitle(config.raw("animation.successTitle", "§8CLUTCH"), config.raw("animation.successSubtitle", "§f%reward% §f보상을 획득했습니다!").replace("%reward%", finalReward.effectiveDisplayName()), 10, 50, 20);
         playSound(player, Sound.ENTITY_PLAYER_LEVELUP);
         if (finalReward.grade().isAtLeast(RewardGrade.LEGENDARY)) {
             playSound(player, Sound.UI_TOAST_CHALLENGE_COMPLETE);
@@ -156,7 +156,7 @@ public final class GachaService {
     private ItemStack displayItem(GachaReward reward) {
         ItemStack itemStack = reward.itemStack() == null ? new ItemStack(reward.material(), Math.max(1, reward.itemAmount())) : reward.itemStack().clone();
         ItemMeta meta = itemStack.getItemMeta();
-        meta.setDisplayName(reward.displayName());
+        meta.setDisplayName(reward.effectiveDisplayName());
         List<String> lore = new ArrayList<>();
         lore.add("§7등급: §f" + reward.grade());
         lore.add("§7weight: §f" + reward.weight());
@@ -166,11 +166,11 @@ public final class GachaService {
     }
 
     private GachaReward weighted(List<GachaReward> rewards) {
-        int totalWeight = totalWeight(rewards);
-        if (totalWeight <= 0) {
+        double totalWeight = totalWeight(rewards);
+        if (totalWeight <= 0D) {
             return null;
         }
-        int cursor = ThreadLocalRandom.current().nextInt(totalWeight);
+        double cursor = ThreadLocalRandom.current().nextDouble(totalWeight);
         for (GachaReward reward : rewards) {
             if (reward.weight() <= 0) {
                 continue;
@@ -183,8 +183,8 @@ public final class GachaService {
         return null;
     }
 
-    private int totalWeight(List<GachaReward> rewards) {
-        return rewards.stream().mapToInt(GachaReward::weight).filter(weight -> weight > 0).sum();
+    private double totalWeight(List<GachaReward> rewards) {
+        return rewards.stream().mapToDouble(GachaReward::weight).filter(weight -> weight > 0D).sum();
     }
 
     private void playSound(Player player, Sound sound) {

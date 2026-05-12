@@ -61,7 +61,7 @@ public final class StoredGachaRepository {
         return Collections.unmodifiableSet(deletedRewardIds);
     }
 
-    public GachaReward addItemReward(ItemStack originalItem, RewardGrade grade, int weight, String displayName) {
+    public GachaReward addItemReward(ItemStack originalItem, RewardGrade grade, double weight, String displayName) {
         String rewardId = "item_" + UUID.randomUUID().toString().replace("-", "").substring(0, 12);
         GachaReward reward = new GachaReward(
                 rewardId,
@@ -132,8 +132,8 @@ public final class StoredGachaRepository {
                 id,
                 enumValue(RewardType.class, string(rawReward, "type", "ITEM"), RewardType.ITEM),
                 enumValue(RewardGrade.class, string(rawReward, "grade", "COMMON"), RewardGrade.COMMON),
-                Math.max(0, integer(rawReward, "weight", 1)),
-                string(rawReward, "displayName", id),
+                Math.max(0D, decimal(rawReward, "weight", 1D)),
+                string(rawReward, "displayName", ""),
                 decimal(rawReward, "amount", 0D),
                 material,
                 itemAmount,

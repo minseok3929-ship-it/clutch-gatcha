@@ -19,13 +19,13 @@ gui:
 messages:
   noTicket: "§c가챠권이 부족합니다."
   reward: "§a%reward%§f 보상을 획득했습니다."
-  broadcastRare: "§6%player%님이 %reward%를 획득했습니다!"
+  broadcastRare: "§6%player%님이 %reward% §f보상을 획득했습니다!"
   reloaded: "§aClutchGacha 설정을 리로드했습니다."
   ticketGiven: "§a%player%님에게 가챠권 %amount%개를 지급했습니다."
 
 animation:
   successTitle: "§8CLUTCH"
-  successSubtitle: "§f가챠 보상을 획득했습니다!"
+  successSubtitle: "§f%reward% §f보상을 획득했습니다!"
   rewardSound: ENTITY_PLAYER_LEVELUP
 
 gacha:
