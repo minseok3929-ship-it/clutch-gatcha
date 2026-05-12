@@ -1,0 +1,50 @@
+prefix: "§8[CLUTCH] "
+
+money:
+  # Vault가 있으면 Vault를 우선 사용합니다. 없으면 아래 콘솔 명령을 실행합니다.
+  command: "돈 지급 %player% %amount%"
+
+ticket:
+  material: PAPER
+  customModelData: 30001
+  displayName: "§6가챠권"
+  lore:
+    - "§7우클릭으로 사용할 수 있습니다."
+
+gui:
+  title: "§8CLUTCH 가챠 보상"
+  # /가챠 GUI는 항상 27칸(3x9)으로 열립니다.
+  size: 27
+
+messages:
+  noTicket: "§c가챠권이 부족합니다."
+  reward: "§a%reward%§f 보상을 획득했습니다."
+  broadcastRare: "§6%player%님이 %reward% §f보상을 획득했습니다!"
+  reloaded: "§aClutchGacha 설정을 리로드했습니다."
+  ticketGiven: "§a%player%님에게 가챠권 %amount%개를 지급했습니다."
+
+animation:
+  successTitle: "§8CLUTCH"
+  successSubtitle: "§f%reward% §f보상을 획득했습니다!"
+  rewardSound: ENTITY_PLAYER_LEVELUP
+
+gacha:
+  rewards:
+    - id: money_1000
+      type: MONEY
+      grade: COMMON
+      weight: 60
+      amount: 1000
+      displayName: "§f1,000원"
+    - id: title_lucky
+      type: COMMAND
+      grade: EPIC
+      weight: 5
+      command: "칭호 지급 %player% 행운의 gold"
+      displayName: "§6[행운의] 칭호"
+    - id: title_legend
+      type: COMMAND
+      grade: LEGENDARY
+      weight: 1
+      command: "칭호 지급 %player% 전설 gold"
+      displayName: "§6[전설] 칭호"
